@@ -12,7 +12,7 @@ start() {
     return 0
   fi
   mkdir -p "$PKGVAR"
-  nohup python3 "$SERVER" --port "$PORT" --www "$WWW" >> "$LOG_FILE" 2>&1 &
+  nohup python3 "$SERVER" --port "$PORT" --www "$WWW" --log "$LOG_FILE" >> "$LOG_FILE" 2>&1 &
   echo $! > "$PID_FILE"
   sleep 1
   if kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then

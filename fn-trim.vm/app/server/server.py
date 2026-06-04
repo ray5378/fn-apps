@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import logging
 import mimetypes
 import os
 import signal
@@ -19,6 +20,7 @@ class ThreadedServer(ThreadingMixIn, HTTPServer):
 
 
 WWW_DIR = ""
+LOG = logging.getLogger("fn-trim.vm")
 TARGET_FILE = "/var/apps/trim.vm/target/static/index.html"
 PATCH_MARKER = "<!-- fn-trim.vm-patch -->"
 PATCH_ANCHOR = "</title>"
@@ -28,7 +30,7 @@ PATCH_STYLE = '''    <!-- fn-trim.vm-patch -->
         #root button {
           display: inline-flex !important;
         }
-        .cc--bottom-sheet .flex.flex-col.gap-2.px-4.pb-\\[calc\\(env\\(safe-area-inset-bottom\\)\\+16px\\)\\] > .hidden {
+        #root [class*="hidden"] {
           display: block !important;
         }
       }
@@ -41,6 +43,19 @@ def run_cmd(cmd):
         return r.returncode, r.stdout.strip(), r.stderr.strip()
     except Exception as e:
         return -1, "", str(e)
+
+
+def get_display_name(name):
+    rc, out, _ = run_cmd(["virsh", "dumpxml", name])
+    if rc != 0:
+        return name
+    for line in out.split("\n"):
+        line = line.strip()
+        if line.startswith("<title>") and line.endswith("</title>"):
+            title = line[7:-8]
+            if title:
+                return title
+    return name
 
 
 def list_vms():
@@ -75,8 +90,11 @@ def list_vms():
                 maxmem = line.split(":", 1)[1].strip().split()[0]
             elif line.startswith("CPU(s):"):
                 vcpu = line.split(":", 1)[1].strip()
+        display_name = get_display_name(name)
         vms.append({
-            "name": name, "state": state, "uuid": uuid,
+            "name": name,
+            "displayName": display_name,
+            "state": state, "uuid": uuid,
             "vcpu": int(vcpu) if vcpu.isdigit() else 0,
             "memory": int(maxmem) if maxmem.isdigit() else 0
         })
@@ -160,7 +178,7 @@ def read_json_body(handler):
 class Handler(BaseHTTPRequestHandler):
 
     def log_message(self, format, *args):
-        pass
+        LOG.info("%s - %s", self.address_string(), format % args)
 
     def do_GET(self):
         path = self.path.split("?")[0]
@@ -294,9 +312,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=5800)
     ap.add_argument("--www", default="")
+    ap.add_argument("--log", default="", help="log file path")
     args = ap.parse_args()
+    log_format = "%(asctime)s [%(levelname)s] %(message)s"
+    if args.log:
+        logging.basicConfig(filename=args.log, level=logging.INFO, format=log_format)
+    else:
+        logging.basicConfig(level=logging.WARNING, format=log_format)
     WWW_DIR = args.www or os.path.join(os.path.dirname(__file__), "..", "www")
     WWW_DIR = os.path.abspath(WWW_DIR)
+    LOG.info("starting on port %d, www=%s", args.port, WWW_DIR)
     server = ThreadedServer(("0.0.0.0", args.port), Handler)
 
     def sigterm(*_):

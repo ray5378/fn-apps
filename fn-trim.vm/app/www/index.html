@@ -48,7 +48,7 @@
     </main>
 
     <footer>
-      <p>fn-trim.vm v2.0.0</p>
+      <p>fn-trim.vm v2.0.1</p>
     </footer>
   </div>
 
@@ -107,7 +107,11 @@
         html += '<div class="vm-card">';
         html += '<div class="vm-top">';
         html += '<div class="vm-name-row">';
-        html += '<span class="vm-name">' + escapeHtml(vm.name) + '</span>';
+        const vmDisplayName = vm.displayName && vm.displayName !== vm.name ? vm.displayName : null;
+        html += '<span class="vm-name">' + escapeHtml(vmDisplayName || vm.name) + '</span>';
+        if (vmDisplayName) {
+          html += '<span class="vm-name-sub">' + escapeHtml(vm.name) + '</span>';
+        }
         html += vmStatusIcon(vm.state);
         html += '</div>';
         html += '</div>';
@@ -172,10 +176,13 @@
 
     async function loadPatchStatus() {
       const data = await apiFetch('patch');
-      if (!data) return;
       const toggle = document.getElementById('patch-toggle');
       const statusText = document.getElementById('patch-status-text');
-
+      if (!data) {
+        statusText.textContent = '获取状态失败';
+        statusText.className = 'status-text status-off';
+        return;
+      }
       toggle.checked = data.patched;
       statusText.textContent = data.patched ? '已开启 ✓' : '已关闭 ✗';
       statusText.className = 'status-text ' + (data.patched ? 'status-on' : 'status-off');

@@ -226,6 +226,13 @@ header h1 {
   word-break: break-all;
 }
 
+.vm-name-sub {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  word-break: break-all;
+  margin-top: 2px;
+}
+
 .status-dot {
   display: inline-block;
   width: 8px;
