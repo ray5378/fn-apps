@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 BASE_PATH="/var/apps/fn-trim.vm/target/www"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
@@ -318,7 +318,9 @@ handle_api() {
         value=$(printf '%s' "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         [ -z "$key" ] && continue
         json+="\"$(json_escape "$key")\":\"$(json_escape "$value")\","
-      done <<< "$info"
+      done <<EOF
+$info
+EOF
       json="${json%,}"
       json+="}"
       send_json_response "200 OK" "$json"

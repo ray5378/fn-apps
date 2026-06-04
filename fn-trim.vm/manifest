@@ -1,5 +1,5 @@
 appname               = fn-trim.vm
-version               = 1.1.0
+version               = 1.1.1
 display_name          = 虚拟机管理
 desc                  = 虚拟机管理面板 - 支持手机端控制虚拟机的启动/关机/重启,以及强制开启VM在手机端的 "导入/创建" 及 "VNC访问" 功能。
 platform              = all
