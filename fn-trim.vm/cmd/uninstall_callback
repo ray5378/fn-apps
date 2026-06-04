@@ -10,25 +10,15 @@ fi
 
 TARGET="/var/apps/trim.vm/target/static/index.html"
 ANCHOR="</title>"
-STRING='    <style>
-      @media all {
-        /* VM import/create buttons visible on mobile devices */
-        #root button {
-          display: inline-flex !important;
-        }
-        /* VNC connect buttons visible on mobile devices */
-        .cc--bottom-sheet .flex.flex-col.gap-2.px-4.pb-\[calc\(env\(safe-area-inset-bottom\)\+16px\)\] > .hidden {
-          display: block !important;
-        }
-      }
-    </style>'
+MARKER="<!-- fn-trim.vm-patch -->"
 
 if ! grep -qF "${ANCHOR}" "${TARGET}" 2>/dev/null; then
   echo 'The current version of trim.vm does not require this app.' >$TRIM_TEMP_LOGFILE
   exit 1
 fi
 
-grep -vF "${STRING}" "${TARGET}" >"${TARGET}".tmp
-mv -f "${TARGET}".tmp "${TARGET}"
+if grep -qF "${MARKER}" "${TARGET}" 2>/dev/null; then
+  sed -i "\|${MARKER}|,\|</style>|d" "${TARGET}"
+fi
 
 exit 0

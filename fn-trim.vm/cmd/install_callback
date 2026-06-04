@@ -10,7 +10,9 @@ fi
 
 TARGET="/var/apps/trim.vm/target/static/index.html"
 ANCHOR="</title>"
-STRING='    <style>
+MARKER="<!-- fn-trim.vm-patch -->"
+STRING='    <!-- fn-trim.vm-patch -->
+    <style>
       @media all {
         /* VM import/create buttons visible on mobile devices */
         #root button {
@@ -28,7 +30,7 @@ if ! grep -qF "${ANCHOR}" "${TARGET}" 2>/dev/null; then
   exit 1
 fi
 
-if ! grep -qF "${STRING}" "${TARGET}" 2>/dev/null; then
+if ! grep -qF "${MARKER}" "${TARGET}" 2>/dev/null; then
   TMP_INSERT=$(mktemp)
   printf '%s\n' "$STRING" >"$TMP_INSERT"
   sed -i "\|${ANCHOR}|r ${TMP_INSERT}" "${TARGET}"
