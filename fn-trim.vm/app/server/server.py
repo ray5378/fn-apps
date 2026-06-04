@@ -29,7 +29,7 @@ CPU_CACHE_LOCK = threading.Lock()
 
 
 def get_cpu_usage(name):
-    rc, out, _ = run_cmd(["virsh", "domstats", name, "--cpu-total"])
+    rc, out, _ = run_cmd(["virsh", "domstats", name])
     if rc != 0:
         return 0.0
     cpu_time = None
