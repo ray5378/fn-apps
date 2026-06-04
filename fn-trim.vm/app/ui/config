@@ -4,8 +4,9 @@
       "title": "虚拟机管理",
       "icon": "images/icon_{0}.png",
       "type": "url",
-      "protocol": "",
-      "url": "/cgi/ThirdParty/fn-trim.vm/index.cgi/"
+      "protocol": "http",
+      "port": "5800",
+      "url": "/"
     }
   }
 }
