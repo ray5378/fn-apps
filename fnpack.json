@@ -250,7 +250,7 @@
     "bug_report_url": "https://github.com/RROrg/fn-apps/issues",
     "labels": "工具",
     "size": "0.081",
-    "download_url": "https://github.com/RROrg/fn-apps/releases/download/2026.06.04-1825/fn-trim.vm_all_v1.1.0.fpk",
+    "download_url": "https://github.com/RROrg/fn-apps/releases/download/2026.06.04-1831/fn-trim.vm_all_v1.1.0.fpk",
     "install_type": "存储空间",
     "changelog": "v1.1.0: 添加虚拟机控制面板 UI，支持手机端管理虚拟机开关重启；修复安装锚点不匹配问题。"
   },
