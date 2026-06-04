@@ -240,19 +240,19 @@
     "changelog": "Initial release of fn-terminal package."
   },
   "fn-trim.vm": {
-    "display_name": "虚拟机m",
+    "display_name": "虚拟机管理",
     "platform": "all",
-    "version": "1.0.0",
-    "desc": "强制开启虚拟机在手机端的 导入/创建 及 VNC访问 功能 (虚拟机升级/重装后也需要重新安装该软件)。",
+    "version": "1.1.0",
+    "desc": "虚拟机管理面板 - 支持手机端控制虚拟机的启动/关机/重启,以及强制开启VM在手机端的 导入/创建 及 VNC访问 功能。",
     "icon": "https://raw.githubusercontent.com/RROrg/fn-apps/refs/heads/main/fn-trim.vm/ICON_256.PNG",
     "distributor": "RROrg",
     "distributor_url": "https://github.com/RROrg/fn-apps",
     "bug_report_url": "https://github.com/RROrg/fn-apps/issues",
     "labels": "工具",
-    "size": "0.036",
-    "download_url": "https://github.com/RROrg/fn-apps/releases/download/2026.06.03-1016/fn-trim.vm_all_v1.0.0.fpk",
+    "size": "0.081",
+    "download_url": "https://github.com/RROrg/fn-apps/releases/download/2026.06.04-1825/fn-trim.vm_all_v1.1.0.fpk",
     "install_type": "存储空间",
-    "changelog": "Initial release of fn-trim.vm package."
+    "changelog": "v1.1.0: 添加虚拟机控制面板 UI，支持手机端管理虚拟机开关重启；修复安装锚点不匹配问题。"
   },
   "fn-vfnOS": {
     "display_name": "fn-vfnOS",
