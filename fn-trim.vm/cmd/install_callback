@@ -9,7 +9,7 @@ if [ "$ARCH" != "x86_64" ]; then
 fi
 
 TARGET="/var/apps/trim.vm/target/static/index.html"
-ANCHOR="<title>VM</title>"
+ANCHOR="</title>"
 STRING='    <style>
       @media all {
         /* VM import/create buttons visible on mobile devices */
