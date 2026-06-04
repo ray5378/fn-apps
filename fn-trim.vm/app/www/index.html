@@ -48,7 +48,7 @@
     </main>
 
     <footer>
-      <p>fn-trim.vm v2.0.1</p>
+      <p>fn-trim.vm v2.0.2</p>
     </footer>
   </div>
 
@@ -119,6 +119,14 @@
         html += '<span class="vm-info-item">CPU: ' + (vm.vcpu || '-') + ' 核</span>';
         html += '<span class="vm-info-item">内存: ' + formatMemory(vm.memory) + '</span>';
         html += '</div>';
+        if (isRunning && vm.cpuUsage !== undefined) {
+          const cpuPct = vm.cpuUsage;
+          html += '<div class="usage-bar-row"><span class="usage-label">CPU</span><div class="usage-track"><div class="usage-fill cpu" style="width:' + cpuPct + '%"></div></div><span class="usage-value">' + cpuPct + '%</span></div>';
+        }
+        if (isRunning && vm.memoryUsage) {
+          const memPct = vm.memoryUsage.percent;
+          html += '<div class="usage-bar-row"><span class="usage-label">内存</span><div class="usage-track"><div class="usage-fill mem" style="width:' + memPct + '%"></div></div><span class="usage-value">' + formatMemory(vm.memoryUsage.usedKB) + ' / ' + formatMemory(vm.memoryUsage.totalKB) + '</span></div>';
+        }
 
         const actions = [];
         if (isRunning) {

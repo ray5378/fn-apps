@@ -8,6 +8,7 @@ import signal
 import subprocess
 import sys
 import threading
+import time
 from http import HTTPStatus
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
@@ -35,6 +36,62 @@ PATCH_STYLE = '''    <!-- fn-trim.vm-patch -->
         }
       }
     </style>'''
+
+
+CPU_CACHE = {}
+CPU_CACHE_LOCK = threading.Lock()
+
+
+def get_cpu_usage(name):
+    rc, out, _ = run_cmd(["virsh", "domstats", name, "--cpu-total"])
+    if rc != 0:
+        return 0.0
+    cpu_time = None
+    vcpus = 1
+    for line in out.split("\n"):
+        line = line.strip()
+        if line.startswith("cpu.time="):
+            cpu_time = int(line.split("=", 1)[1])
+        elif line.startswith("vcpu.current="):
+            vcpus = int(line.split("=", 1)[1])
+    if cpu_time is None or cpu_time == 0:
+        return 0.0
+    now = time.time()
+    with CPU_CACHE_LOCK:
+        prev = CPU_CACHE.get(name)
+        if prev:
+            dt = now - prev["time"]
+            if dt > 0.5:
+                dc = cpu_time - prev["cpu_time"]
+                if dc >= 0:
+                    usage = (dc / 1e9) / (dt * vcpus) * 100
+                    usage = min(usage, 100.0)
+                else:
+                    usage = 0.0
+            else:
+                usage = prev.get("usage", 0.0)
+        else:
+            usage = 0.0
+        CPU_CACHE[name] = {"time": now, "cpu_time": cpu_time, "usage": usage, "vcpus": vcpus}
+    return round(usage, 1)
+
+
+def get_memory_usage(name):
+    rc, out, _ = run_cmd(["virsh", "dommemstat", name])
+    if rc != 0:
+        return None
+    rss = None
+    actual = None
+    for line in out.split("\n"):
+        line = line.strip()
+        if line.startswith("rss "):
+            rss = int(line.split()[1])
+        elif line.startswith("actual "):
+            actual = int(line.split()[1])
+    if rss and actual and actual > 0:
+        pct = min(round(rss / actual * 100, 1), 100.0)
+        return {"usedKB": rss, "totalKB": actual, "percent": pct}
+    return None
 
 
 def run_cmd(cmd):
@@ -91,13 +148,19 @@ def list_vms():
             elif line.startswith("CPU(s):"):
                 vcpu = line.split(":", 1)[1].strip()
         display_name = get_display_name(name)
-        vms.append({
+        vm_entry = {
             "name": name,
             "displayName": display_name,
             "state": state, "uuid": uuid,
             "vcpu": int(vcpu) if vcpu.isdigit() else 0,
             "memory": int(maxmem) if maxmem.isdigit() else 0
-        })
+        }
+        if state == "running":
+            vm_entry["cpuUsage"] = get_cpu_usage(name)
+            mem = get_memory_usage(name)
+            if mem:
+                vm_entry["memoryUsage"] = mem
+        vms.append(vm_entry)
     return vms
 
 

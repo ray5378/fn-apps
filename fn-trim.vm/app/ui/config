@@ -2,11 +2,18 @@
   ".url": {
     "fn-trim.vm.Application": {
       "title": "虚拟机管理",
+      "desc": "虚拟机管理面板 - 支持查看虚拟机CPU/内存使用率，控制启动/关机/重启",
       "icon": "images/icon_{0}.png",
-      "type": "url",
+      "type": "iframe",
       "protocol": "http",
       "port": "5800",
-      "url": "/"
+      "url": "/",
+      "control": {
+        "auth": 1,
+        "port": 2,
+        "path": 2,
+        "fullUrl": 2
+      }
     }
   }
 }
