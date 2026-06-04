@@ -1,45 +1,5 @@
-#!/bin/bash
+#!/bin/sh
 
-### This script is called after the user installs the application.
-
-ARCH=$(uname -m)
-if [ "$ARCH" != "x86_64" ]; then
-  echo 'The current architecture of fnOS does not require this app.' >$TRIM_TEMP_LOGFILE
-  exit 1
-fi
-
-TARGET="/var/apps/trim.vm/target/static/index.html"
-ANCHOR="</title>"
-MARKER="<!-- fn-trim.vm-patch -->"
-STRING='    <!-- fn-trim.vm-patch -->
-    <style>
-      @media all {
-        /* VM import/create buttons visible on mobile devices */
-        #root button {
-          display: inline-flex !important;
-        }
-        /* VNC connect buttons visible on mobile devices */
-        .cc--bottom-sheet .flex.flex-col.gap-2.px-4.pb-\[calc\(env\(safe-area-inset-bottom\)\+16px\)\] > .hidden {
-          display: block !important;
-        }
-      }
-    </style>'
-
-if ! grep -qF "${ANCHOR}" "${TARGET}" 2>/dev/null; then
-  echo 'The current version of trim.vm does not require this app.' >$TRIM_TEMP_LOGFILE
-  exit 1
-fi
-
-if ! grep -qF "${MARKER}" "${TARGET}" 2>/dev/null; then
-  TMP_INSERT=$(mktemp)
-  printf '%s\n' "$STRING" >"$TMP_INSERT"
-  sed -i "\|${ANCHOR}|r ${TMP_INSERT}" "${TARGET}"
-  [ $? -eq 0 ] || {
-    rm -f "${TMP_INSERT}"
-    echo 'Failed to patch trim.vm.' >${TRIM_TEMP_LOGFILE}
-    exit 1
-  }
-  rm -f "${TMP_INSERT}"
-fi
+chmod +x ${TRIM_APPDEST}/cmd/*
 
 exit 0

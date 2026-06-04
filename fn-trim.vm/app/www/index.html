@@ -16,26 +16,6 @@
     </header>
 
     <main>
-      <section id="patch-section" class="card">
-        <div class="card-header">
-          <h2>手机端增强</h2>
-          <span class="badge">VM Patch</span>
-        </div>
-        <div class="card-body">
-          <div class="toggle-row">
-            <div class="toggle-info">
-              <span class="toggle-label">开启 VM 手机端导入/创建及 VNC 访问</span>
-              <span id="patch-status-text" class="status-text">检查中...</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="patch-toggle" />
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <p class="hint">强制开启虚拟机在手机端的功能按钮显示。虚拟机升级或重装后需重新应用。</p>
-        </div>
-      </section>
-
       <section id="vms-section" class="card">
         <div class="card-header">
           <h2>虚拟机列表</h2>
@@ -182,45 +162,8 @@
       if (data) renderVMs(data);
     }
 
-    async function loadPatchStatus() {
-      const data = await apiFetch('patch');
-      const toggle = document.getElementById('patch-toggle');
-      const statusText = document.getElementById('patch-status-text');
-      if (!data) {
-        statusText.textContent = '获取状态失败';
-        statusText.className = 'status-text status-off';
-        return;
-      }
-      toggle.checked = data.patched;
-      statusText.textContent = data.patched ? '已开启 ✓' : '已关闭 ✗';
-      statusText.className = 'status-text ' + (data.patched ? 'status-on' : 'status-off');
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
       loadVMs();
-      loadPatchStatus();
-
-      document.getElementById('patch-toggle').addEventListener('change', async function() {
-        const enable = this.checked;
-        const statusText = document.getElementById('patch-status-text');
-        statusText.textContent = '处理中...';
-
-        const data = await apiFetch('patch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ enabled: enable })
-        });
-
-        if (data && data.success !== undefined) {
-          loadPatchStatus();
-          if (data.success) {
-            showToast(enable ? '补丁已应用' : '补丁已移除', 'success');
-          }
-        } else {
-          loadPatchStatus();
-        }
-      });
-
       setInterval(loadVMs, 5000);
     });
   </script>

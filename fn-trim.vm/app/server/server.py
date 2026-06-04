@@ -22,20 +22,6 @@ class ThreadedServer(ThreadingMixIn, HTTPServer):
 
 WWW_DIR = ""
 LOG = logging.getLogger("fn-trim.vm")
-TARGET_FILE = "/var/apps/trim.vm/target/static/index.html"
-PATCH_MARKER = "<!-- fn-trim.vm-patch -->"
-PATCH_ANCHOR = "</title>"
-PATCH_STYLE = '''    <!-- fn-trim.vm-patch -->
-    <style>
-      @media all {
-        #root button {
-          display: inline-flex !important;
-        }
-        #root [class*="hidden"] {
-          display: block !important;
-        }
-      }
-    </style>'''
 
 
 CPU_CACHE = {}
@@ -169,50 +155,6 @@ def vm_action(name, action):
     return rc == 0, out or err
 
 
-def get_patch_status():
-    if not os.path.isfile(TARGET_FILE):
-        return False
-    with open(TARGET_FILE, "r", errors="replace") as f:
-        return PATCH_MARKER in f.read()
-
-
-def apply_patch(enable):
-    if enable:
-        if get_patch_status():
-            return True, "already patched"
-        style = PATCH_STYLE + "\n"
-        tmp = TARGET_FILE + ".tmp"
-        found = False
-        with open(TARGET_FILE, "r", errors="replace") as f:
-            content = f.read()
-        idx = content.find(PATCH_ANCHOR)
-        if idx == -1:
-            return False, f"anchor '{PATCH_ANCHOR}' not found"
-        idx += len(PATCH_ANCHOR)
-        content = content[:idx] + "\n" + style + content[idx:]
-        with open(tmp, "w") as f:
-            f.write(content)
-        os.replace(tmp, TARGET_FILE)
-        return True, "patch applied"
-    else:
-        if not get_patch_status():
-            return True, "not patched"
-        with open(TARGET_FILE, "r", errors="replace") as f:
-            content = f.read()
-        while PATCH_MARKER in content:
-            start = content.find(PATCH_MARKER)
-            end = content.find("</style>", start)
-            if end == -1:
-                break
-            end += len("</style>")
-            content = content[:start] + content[end:]
-        tmp = TARGET_FILE + ".tmp"
-        with open(tmp, "w") as f:
-            f.write(content)
-        os.replace(tmp, TARGET_FILE)
-        return True, "patch removed"
-
-
 def send_json(handler, code, data):
     body = json.dumps(data, ensure_ascii=False).encode("utf-8")
     handler.send_response(code)
@@ -247,8 +189,6 @@ class Handler(BaseHTTPRequestHandler):
         path = self.path.split("?")[0]
         if path == "/api/vms":
             self.handle_list_vms()
-        elif path == "/api/patch":
-            self.handle_get_patch()
         elif path.startswith("/api/vm/"):
             self.handle_get_vm()
         else:
@@ -258,8 +198,6 @@ class Handler(BaseHTTPRequestHandler):
         path = self.path.split("?")[0]
         if path.startswith("/api/vm/"):
             self.handle_vm_action()
-        elif path == "/api/patch":
-            self.handle_post_patch()
         else:
             send_error(self, HTTPStatus.NOT_FOUND, "not found")
 
@@ -316,33 +254,6 @@ class Handler(BaseHTTPRequestHandler):
                 send_json(self, HTTPStatus.OK, {
                     "success": False, "error": msg,
                     "vm": name, "action": action
-                })
-        except Exception as e:
-            send_error(self, HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
-
-    def handle_get_patch(self):
-        try:
-            patched = get_patch_status()
-            send_json(self, HTTPStatus.OK, {"patched": patched})
-        except Exception as e:
-            send_error(self, HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
-
-    def handle_post_patch(self):
-        body = read_json_body(self)
-        if body is None or "enabled" not in body:
-            send_error(self, HTTPStatus.BAD_REQUEST, "enabled field required")
-            return
-        try:
-            ok, msg = apply_patch(body["enabled"])
-            if ok:
-                send_json(self, HTTPStatus.OK, {
-                    "success": True, "patched": body["enabled"],
-                    "message": msg
-                })
-            else:
-                send_json(self, HTTPStatus.OK, {
-                    "success": False, "patched": get_patch_status(),
-                    "error": msg
                 })
         except Exception as e:
             send_error(self, HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
